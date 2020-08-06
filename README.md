@@ -1,1 +1,1 @@
-# ST-CGAN_Stacked_Conditional_Generative_Adversarial_Networks
+# ST-CGAN: Stacked Conditional Generative Adversarial Networks
