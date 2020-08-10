@@ -30,7 +30,7 @@ class Cvi(nn.Module):
                  padding=1, dilation=1, groups=1, bias=False):
         super(Cvi, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.conv.apply(weights_init('kaiming'))
+        self.conv.apply(weights_init('gaussian'))
 
         if after=='BN':
             self.after = nn.BatchNorm2d(out_channels)
@@ -62,7 +62,7 @@ class CvTi(nn.Module):
                  padding=1, dilation=1, groups=1, bias=False):
         super(CvTi, self).__init__()
         self.conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias)
-        self.conv.apply(weights_init('kaiming'))
+        self.conv.apply(weights_init('gaussian'))
 
         if after=='BN':
             self.after = nn.BatchNorm2d(out_channels)
