@@ -69,11 +69,10 @@ def evaluate(G1, G2, dataset, device, filename):
 
     with torch.no_grad():
         detected_shadow = G1(img.to(device))
+        detected_shadow = detected_shadow.to(torch.device('cpu'))
         concat = torch.cat([img, detected_shadow], dim=1)
         shadow_removal_image = G2(concat.to(device))
-
-    detected_shadow = detected_shadow.to(torch.device('cpu'))
-    shadow_removal_image = shadow_removal_image.to(torch.device('cpu'))
+        shadow_removal_image = shadow_removal_image.to(torch.device('cpu'))
 
     grid_detect = make_grid(torch.cat((gt_shadow, unnormalize(detected_shadow)), dim=0))
     grid_removal = make_grid(torch.cat((unnormalize(img), unnormalize(gt), unnormalize(shadow_removal_image)), dim=0))
