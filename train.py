@@ -27,7 +27,7 @@ def get_parser():
         description='This module demonstrates shadow detection and removal using ST-CGAN.',
         add_help=True)
 
-    parser.add_argument('-e', '--epoch', type=int, default=1000, help='Number of epochs')
+    parser.add_argument('-e', '--epoch', type=int, default=10000, help='Number of epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=4, help='Batch size')
     parser.add_argument('-s', '--image_size', type=int, default=286)
     parser.add_argument('-f', '--finetune', action='store_true')
@@ -74,7 +74,7 @@ def evaluate(G1, G2, dataset, device, filename):
         shadow_removal_image = G2(concat.to(device))
         shadow_removal_image = shadow_removal_image.to(torch.device('cpu'))
 
-    grid_detect = make_grid(torch.cat((gt_shadow, unnormalize(detected_shadow)), dim=0))
+    grid_detect = make_grid(torch.cat((unnormalize(gt_shadow), unnormalize(detected_shadow)), dim=0))
     grid_removal = make_grid(torch.cat((unnormalize(img), unnormalize(gt), unnormalize(shadow_removal_image)), dim=0))
 
     save_image(grid_detect, filename+'_detect.jpg')
@@ -179,6 +179,9 @@ def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, sav
             mini_batch_size = images.size()[0]
 
             # Train Discriminator
+            set_requires_grad([D1, D2], True)  # enable backprop$
+            optimizerD.zero_grad()
+
             # for D1
             detected_shadow = G1(images)
             fake1 = torch.cat([images, detected_shadow], dim=1)
@@ -192,9 +195,6 @@ def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, sav
             real2 = torch.cat([real1, gt], dim=1)
             out_D2_fake = D2(fake2.detach())
             out_D2_real = D2(real2)# .detach() is not required as real2 doesn't have grad
-
-            set_requires_grad([D1, D2], True)  # enable backprop for D1, D2
-            optimizerD.zero_grad()
 
             # L_CGAN1
             label_D1_fake = Variable(Tensor(np.zeros(out_D1_fake.size())), requires_grad=True)
@@ -275,8 +275,17 @@ def main(parser):
     D2 = Discriminator(input_channels=7)
 
     '''load'''
-    #weights = torch.load('./checkpoints/xxx.pth')
-    #net.load_state_dict(fix_model_state_dict(weights))
+    #G1_weights = torch.load('./checkpoints/ST-CGAN_G1_xxxx.pth')
+    #G1.load_state_dict(fix_model_state_dict(G1_weights))
+
+    #G2_weights = torch.load('./checkpoints/ST-CGAN_G2_xxxx.pth')
+    #G2.load_state_dict(fix_model_state_dict(G2_weights))
+
+    #D1_weights = torch.load('./checkpoints/ST-CGAN_D1_xxxx.pth')
+    #D1.load_state_dict(fix_model_state_dict(D1_weights))
+
+    #D2_weights = torch.load('./checkpoints/ST-CGAN_D2_xxxx.pth')
+    #D2.load_state_dict(fix_model_state_dict(D2_weights))
 
     train_img_list, val_img_list = make_datapath_list(phase='train', rate=0.8)
 
