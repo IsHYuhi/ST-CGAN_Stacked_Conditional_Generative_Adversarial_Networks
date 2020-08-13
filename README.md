@@ -19,7 +19,14 @@ python3 train.py
 ```
 
 ## Results
-coming soon...
+Here are some results from validation set.
+### Shadow Detection
+![](https://github.com/IsHYuhi/ST-CGAN_Stacked_Conditional_Generative_Adversarial_Networks/blob/master/result/detected_shadow.jpg)
+(Top to bottom: ground truth, shadow detection)
+
+### Shadow Removal
+![](https://github.com/IsHYuhi/ST-CGAN_Stacked_Conditional_Generative_Adversarial_Networks/blob/master/result/shadow_removal.jpg)
+(Top to bottom: input, ground truth, shadow removal)
 
 ## References
 * Stacked Conditional Generative Adversarial Networks for Jointly Learning Shadow Detection and Shadow Removal, Jifeng Wang<sup>∗</sup>, Xiang Li<sup>∗</sup>, Le Hui, Jian Yang, **Nanjing University of Science and Technology**, [[arXiv]](https://arxiv.org/abs/1712.02478)
