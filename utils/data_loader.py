@@ -23,13 +23,13 @@ def make_datapath_list(phase="train", rate=0.8):
     path_A = []
     path_B = []
     path_C = []
+
     for name in files_name:
         path_A.append(rootpath+'train_A/'+name)
         path_B.append(rootpath+'train_B/'+name)
         path_C.append(rootpath+'train_C/'+name)
 
     num = len(path_A)
-
 
     if phase=='train':
         path_A, path_A_val = path_A[:int(num*rate)], path_A[int(num*rate):]
@@ -44,7 +44,6 @@ def make_datapath_list(phase="train", rate=0.8):
         return path_list
 
 
-#TODO
 class ImageTransform():
     """
     preprocessing images
@@ -61,12 +60,10 @@ class ImageTransform():
         return self.data_transform(img)
 
 
-
 class ImageDataset(data.Dataset):
     """
     Dataset class. Inherit Dataset class from PyTrorch.
     """
-
     def __init__(self, img_list, img_transform):
         self.img_list = img_list
         self.img_transform = img_transform
