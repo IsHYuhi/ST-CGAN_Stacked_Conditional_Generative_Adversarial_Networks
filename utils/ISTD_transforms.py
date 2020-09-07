@@ -1,4 +1,5 @@
 #refered https://github.com/pytorch/vision/blob/master/torchvision/transforms/transforms.py
+
 import math
 import numbers
 import random
@@ -10,6 +11,7 @@ import torch
 from PIL import Image
 from torch import Tensor
 import torchvision.transforms.functional as F
+
 
 class Compose(object):
     def __init__(self, transforms):
@@ -28,16 +30,16 @@ class Compose(object):
         format_string += '\n)'
         return format_string
 
-class ToTensor(object):
 
+class ToTensor(object):
     def __call__(self, pic):
         return F.to_tensor(pic[0]), F.to_tensor(pic[1]), F.to_tensor(pic[2])
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
 
-class Scale(object):
 
+class Scale(object):
   def __init__(self, size, interpolation=Image.BILINEAR):
     self.size = size
     self.interpolation = interpolation
@@ -60,6 +62,7 @@ class Scale(object):
       output.append(img.resize((ow, oh), self.interpolation))
     return output[0], output[1], output[2]
 
+
 class Normalize(object):
     def __init__(self, mean, std, inplace=False):
         self.mean = mean
@@ -71,6 +74,7 @@ class Normalize(object):
 
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+
 
 class CenterCrop(torch.nn.Module):
     def __init__(self, size):

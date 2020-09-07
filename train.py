@@ -16,7 +16,6 @@ import time
 import torch
 import os
 
-
 torch.manual_seed(44)
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
@@ -30,7 +29,7 @@ def get_parser():
     parser.add_argument('-e', '--epoch', type=int, default=10000, help='Number of epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=4, help='Batch size')
     parser.add_argument('-s', '--image_size', type=int, default=286)
-    parser.add_argument('-f', '--finetune', action='store_true')
+    parser.add_argument('-cs', '--crop_size', type=int, default=256)
     parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--lr_finetune', type=float, default=5e-5)
 
@@ -98,7 +97,6 @@ def check_dir():
     if not os.path.exists('./result'):
         os.mkdir('./result')
 
-
 def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, save_model_name='model'):
 
     check_dir()
@@ -121,14 +119,9 @@ def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, sav
 
     print("device:{}".format(device))
 
-    if parser.finetune:
-        lr = parser.lr_fine
-        pconv_unet.fine_tune = True
-    else:
-        lr = parser.lr
-
-    #optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, pconv_unet.parameters()), lr=lr)
+    lr = parser.lr
     beta1, beta2 = 0.5, 0.999
+
     optimizerG = torch.optim.Adam([{'params': G1.parameters()}, {'params': G2.parameters()}],
                                   lr=lr,
                                   betas=(beta1, beta2))
@@ -147,7 +140,6 @@ def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, sav
     lambda_dict = {'lambda1':5, 'lambda2':0.1, 'lambda3':0.1}
 
     iteration = 1
-    logs = []
     g_losses = []
     d_losses = []
 
@@ -201,7 +193,7 @@ def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, sav
             label_D1_real = Variable(Tensor(np.ones(out_D1_fake.size())), requires_grad=True)
 
             loss_D1_fake = criterionGAN(out_D1_fake, label_D1_fake)
-            loss_D1_real = criterionGAN(out_D2_real, label_D1_real)
+            loss_D1_real = criterionGAN(out_D1_real, label_D1_real)
             D_L_CGAN1 = loss_D1_fake + loss_D1_real
 
             # L_CGAN2
@@ -292,13 +284,14 @@ def main(parser):
     mean = (0.5,)
     std = (0.5,)
     size = parser.image_size
+    crop_size = parser.crop_size
     batch_size = parser.batch_size
     num_epochs = parser.epoch
 
     train_dataset = ImageDataset(img_list=train_img_list,
-                                img_transform=ImageTransform(size=size, crop_size=256, mean=mean, std=std))
+                                img_transform=ImageTransform(size=size, crop_size=crop_size, mean=mean, std=std))
     val_dataset = ImageDataset(img_list=val_img_list,
-                                img_transform=ImageTransform(size=size, crop_size=256, mean=mean, std=std))
+                                img_transform=ImageTransform(size=size, crop_size=crop_size, mean=mean, std=std))
 
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True) #num_workers=4
 
