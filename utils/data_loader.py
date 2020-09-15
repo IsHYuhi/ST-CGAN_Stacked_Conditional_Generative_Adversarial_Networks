@@ -2,32 +2,35 @@ import os
 import glob
 import torch
 import torch.utils.data as data
-from . import ISTD_transforms as transforms
+from . import ISTD_transforms
 from PIL import Image
 import random
-from torchvision import transforms as tf
+from torchvision import transforms
 import matplotlib.pyplot as plt
 
-random.seed(44)
 
 def make_datapath_list(phase="train", rate=0.8):
     """
     make filepath list for train, validation and test images
     """
-    rootpath = "./dataset/"+phase+'/'
-    files_name = os.listdir(rootpath+'train_A')
+    random.seed(44)
+
+    rootpath = './dataset/' + phase + '/'
+    files_name = os.listdir(rootpath + phase + '_A')
 
     if phase=='train':
         random.shuffle(files_name)
+    elif phase=='test':
+        files_name.sort()
 
     path_A = []
     path_B = []
     path_C = []
 
     for name in files_name:
-        path_A.append(rootpath+'train_A/'+name)
-        path_B.append(rootpath+'train_B/'+name)
-        path_C.append(rootpath+'train_C/'+name)
+        path_A.append(rootpath + phase + '_A/'+name)
+        path_B.append(rootpath + phase + '_B/'+name)
+        path_C.append(rootpath + phase + '_C/'+name)
 
     num = len(path_A)
 
@@ -43,30 +46,51 @@ def make_datapath_list(phase="train", rate=0.8):
         path_list = {'path_A': path_A, 'path_B': path_B, 'path_C': path_C}
         return path_list
 
+class ImageTransformOwn():
+    """
+    preprocessing images for own images
+    """
+    def __init__(self, size=256, mean=(0.5, ), std=(0.5, )):
+        self.data_transform = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Normalize(mean, std)])
+
+    def __call__(self, img):
+        return self.data_transform(img)
+
 
 class ImageTransform():
     """
     preprocessing images
     """
     def __init__(self, size=286, crop_size=256, mean=(0.5, ), std=(0.5, )):
-        self.data_transform = transforms.Compose([
-            transforms.Scale(size=size),
-            transforms.RandomCrop(size=crop_size),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)])
+        self.data_transform = {'train': ISTD_transforms.Compose([ISTD_transforms.Scale(size=size),
+                                                            ISTD_transforms.RandomCrop(size=crop_size),
+                                                            ISTD_transforms.RandomHorizontalFlip(p=0.5),
+                                                            ISTD_transforms.ToTensor(),
+                                                            ISTD_transforms.Normalize(mean, std)]),
 
-    def __call__(self, img):
-        return self.data_transform(img)
+                                'val': ISTD_transforms.Compose([ISTD_transforms.Scale(size=size),
+                                                           ISTD_transforms.RandomCrop(size=crop_size),
+                                                           ISTD_transforms.ToTensor(),
+                                                           ISTD_transforms.Normalize(mean, std)]),
+
+                                'test': ISTD_transforms.Compose([ISTD_transforms.Scale(size=size),
+                                                            ISTD_transforms.RandomCrop(size=crop_size),
+                                                            ISTD_transforms.ToTensor(),
+                                                            ISTD_transforms.Normalize(mean, std)])}
+
+    def __call__(self, phase, img):
+        return self.data_transform[phase](img)
 
 
 class ImageDataset(data.Dataset):
     """
     Dataset class. Inherit Dataset class from PyTrorch.
     """
-    def __init__(self, img_list, img_transform):
+    def __init__(self, img_list, img_transform, phase):
         self.img_list = img_list
         self.img_transform = img_transform
+        self.phase = phase
 
     def __len__(self):
         return len(self.img_list['path_A'])
@@ -79,7 +103,7 @@ class ImageDataset(data.Dataset):
         gt_shadow = Image.open(self.img_list['path_B'][index])
         gt = Image.open(self.img_list['path_C'][index]).convert('RGB')
 
-        img, gt_shadow, gt = self.img_transform([img, gt_shadow, gt])
+        img, gt_shadow, gt = self.img_transform(self.phase, [img, gt_shadow, gt])
 
         return img, gt_shadow, gt
 
@@ -109,10 +133,10 @@ if __name__ == '__main__':
 
 
     f.add_subplot(2, 3, 4)
-    plt.imshow(tf.ToPILImage()(img).convert('RGB'))
+    plt.imshow(transforms.ToPILImage()(img).convert('RGB'))
     f.add_subplot(2, 3, 5)
-    plt.imshow(tf.ToPILImage()(gt_shadow).convert('L'), cmap='gray')
+    plt.imshow(transforms.ToPILImage()(gt_shadow).convert('L'), cmap='gray')
     f.add_subplot(2, 3, 6)
-    plt.imshow(tf.ToPILImage()(gt).convert('RGB'))
+    plt.imshow(transforms.ToPILImage()(gt).convert('RGB'))
     f.tight_layout()
     plt.show()
