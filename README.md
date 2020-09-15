@@ -11,20 +11,36 @@ This repository is unofficial implementation of  [Stacked Conditional Generative
 * matplotlib
 
 ## Usage
-* Set datasets under ```./dataset```. You can Download datasets from [here](https://github.com/DeepInsight-PCALab/ST-CGAN).
+* Set datasets under ```./dataset```. You can Download datasets from [here](https://github.com/DeepInsight-PCALab/ST-CGAN). 
 
 Then,
+### Training
 ```
 python3 train.py
 ```
+### Testing
+When Testing images from ISTD dataset.
+```
+python3 test.py -l <the number of checkpoint>
+```
+When you would like to test your own image.
+```
+python3 test.py -l <the number of checkpoint> -i <image_path> -o <out_path>
+```
+
 
 ## Results
-Here are some results from validation set.
+Here is a result from test sets.
+![](https://github.com/IsHYuhi/ST-CGAN_Stacked_Conditional_Generative_Adversarial_Networks/blob/master/result/91-3.png)
+(Left to right: input, ground truth, shadow removal, ground truth shadow, shadow detection)
+
 ### Shadow Detection
+Here are some results from validation set.
 ![](https://github.com/IsHYuhi/ST-CGAN_Stacked_Conditional_Generative_Adversarial_Networks/blob/master/result/detected_shadow.jpg)
 (Top to bottom: ground truth, shadow detection)
 
 ### Shadow Removal
+Here are some results from validation set.
 ![](https://github.com/IsHYuhi/ST-CGAN_Stacked_Conditional_Generative_Adversarial_Networks/blob/master/result/shadow_removal.jpg)
 (Top to bottom: input, ground truth, shadow removal)
 
