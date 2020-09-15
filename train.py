@@ -2,21 +2,22 @@ from utils.data_loader import make_datapath_list, ImageDataset, ImageTransform
 from models.ST_CGAN import Generator, Discriminator
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
-from torchvision import models
 from torch.autograd import Variable
 from collections import OrderedDict
-
+from torchvision import models
 from tqdm import tqdm
-import numpy as np
+
 import matplotlib.pyplot as plt
 import torch.optim as optim
 import torch.nn as nn
+import numpy as np
 import argparse
 import time
 import torch
 import os
 
 torch.manual_seed(44)
+# choose your device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 def get_parser():
@@ -27,11 +28,12 @@ def get_parser():
         add_help=True)
 
     parser.add_argument('-e', '--epoch', type=int, default=10000, help='Number of epochs')
-    parser.add_argument('-b', '--batch_size', type=int, default=4, help='Batch size')
+    parser.add_argument('-b', '--batch_size', type=int, default=8, help='Batch size')
+    parser.add_argument('-l', '--load', type=str, default=None, help='the number of checkpoints')
+    parser.add_argument('-hor', '--hold_out_ratio', type=float, default=0.8, help='training-validation ratio')
     parser.add_argument('-s', '--image_size', type=int, default=286)
     parser.add_argument('-cs', '--crop_size', type=int, default=256)
-    parser.add_argument('--lr', type=float, default=2e-4)
-    parser.add_argument('--lr_finetune', type=float, default=5e-5)
+    parser.add_argument('-lr', '--lr', type=float, default=2e-4)
 
     return parser
 
@@ -254,7 +256,7 @@ def train_model(G1, G2, D1, D2, dataloader, val_dataset, num_epochs, parser, sav
             torch.save(D2.state_dict(), 'checkpoints/'+save_model_name+'_D2_'+str(epoch)+'.pth')
             G1.eval()
             G2.eval()
-            evaluate(G1, G2, val_dataset, device, '{:s}/test_{:d}'.format('result', epoch))
+            evaluate(G1, G2, val_dataset, device, '{:s}/val_{:d}'.format('result', epoch))
 
     return G1, G2, D1, D2
 
@@ -267,19 +269,22 @@ def main(parser):
     D2 = Discriminator(input_channels=7)
 
     '''load'''
-    #G1_weights = torch.load('./checkpoints/ST-CGAN_G1_xxxx.pth')
-    #G1.load_state_dict(fix_model_state_dict(G1_weights))
+    if parser.load is not None:
+        print('load checkpoint ' + parser.load)
 
-    #G2_weights = torch.load('./checkpoints/ST-CGAN_G2_xxxx.pth')
-    #G2.load_state_dict(fix_model_state_dict(G2_weights))
+        G1_weights = torch.load('./checkpoints/ST-CGAN_G1_'+parser.load+'.pth')
+        G1.load_state_dict(fix_model_state_dict(G1_weights))
 
-    #D1_weights = torch.load('./checkpoints/ST-CGAN_D1_xxxx.pth')
-    #D1.load_state_dict(fix_model_state_dict(D1_weights))
+        G2_weights = torch.load('./checkpoints/ST-CGAN_G2_'+parser.load+'.pth')
+        G2.load_state_dict(fix_model_state_dict(G2_weights))
 
-    #D2_weights = torch.load('./checkpoints/ST-CGAN_D2_xxxx.pth')
-    #D2.load_state_dict(fix_model_state_dict(D2_weights))
+        D1_weights = torch.load('./checkpoints/ST-CGAN_D1_'+parser.load+'.pth')
+        D1.load_state_dict(fix_model_state_dict(D1_weights))
 
-    train_img_list, val_img_list = make_datapath_list(phase='train', rate=0.8)
+        D2_weights = torch.load('./checkpoints/ST-CGAN_D2_'+parser.load+'.pth')
+        D2.load_state_dict(fix_model_state_dict(D2_weights))
+
+    train_img_list, val_img_list = make_datapath_list(phase='train', rate=parser.hold_out_ratio)
 
     mean = (0.5,)
     std = (0.5,)
@@ -289,9 +294,11 @@ def main(parser):
     num_epochs = parser.epoch
 
     train_dataset = ImageDataset(img_list=train_img_list,
-                                img_transform=ImageTransform(size=size, crop_size=crop_size, mean=mean, std=std))
+                                img_transform=ImageTransform(size=size, crop_size=crop_size, mean=mean, std=std),
+                                phase='train')
     val_dataset = ImageDataset(img_list=val_img_list,
-                                img_transform=ImageTransform(size=size, crop_size=crop_size, mean=mean, std=std))
+                                img_transform=ImageTransform(size=size, crop_size=crop_size, mean=mean, std=std),
+                                phase='val')
 
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True) #num_workers=4
 
