@@ -34,6 +34,7 @@ def get_parser():
     parser.add_argument('-o', '--out_path', type=str, default='./test_result', help='saving path')
     parser.add_argument('-s', '--image_size', type=int, default=286)
     parser.add_argument('-cs', '--crop_size', type=int, default=256)
+    parser.add_argument('-rs', '--resized_size', type=int, default=256)
 
     return parser
 
@@ -179,13 +180,15 @@ def main(parser):
 
     mean = (0.5,)
     std = (0.5,)
+
     size = parser.image_size
     crop_size = parser.crop_size
+    resized_size = parser.resized_size
 
     # test own image
     if parser.image_path is not None:
         print('test ' + parser.image_path)
-        test_own_image(G1, G2, parser.image_path, parser.out_path, size, img_transform=ImageTransformOwn(size=size, mean=mean, std=std))
+        test_own_image(G1, G2, parser.image_path, parser.out_path, resized_size, img_transform=ImageTransformOwn(size=size, mean=mean, std=std))
 
     # test images from the ISTD dataset
     else:
