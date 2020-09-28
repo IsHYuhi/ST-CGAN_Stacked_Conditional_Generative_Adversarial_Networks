@@ -21,11 +21,11 @@ python3 train.py
 ### Testing
 When Testing images from ISTD dataset.
 ```
-python3 test.py -l <the number of checkpoint>
+python3 test.py -l checkpoint number>
 ```
 When you would like to test your own image.
 ```
-python3 test.py -l <the number of checkpoint> -i <image_path> -o <out_path>
+python3 test.py -l <checkpoint number> -i <image_path> -o <out_path>
 ```
 
 
